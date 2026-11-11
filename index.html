@@ -59,16 +59,24 @@
     pointer-events: none;
   }
 
-  .avatar {
-    width: 120px; height: 150px; border-radius: 6px;
-    border: 1px solid var(--ink);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 40px; font-weight: 200;
-    margin-bottom: 30px; overflow: hidden;
-    box-shadow: 0 0 30px rgba(0, 240, 255, .25);
+  /* Banner foto: selebar kolom konten, tinggi lebih pendek */
+  .banner {
+    width: 100%;
+    height: 150px;               /* ubah untuk mengatur tinggi banner */
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    margin-bottom: 30px;
+    background: linear-gradient(135deg, #6a1fe0, #ff2d95 60%, #00f0ff); /* tampil jika foto belum ada */
+    box-shadow: 0 0 30px rgba(138, 92, 255, .25);
     animation: rise .9s ease both;
   }
-  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .banner img {
+    display: block;
+    width: 100%; height: 100%;
+    object-fit: cover;           /* foto dipotong otomatis */
+    object-position: center;     /* atur fokus foto */
+  }
 
   h1 {
     font-size: clamp(44px, 9vw, 72px);
