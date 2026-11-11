@@ -3,14 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Profil</title>
+<title>Boarding Pass</title>
 <style>
   :root {
     --ink: #f1efff;
     --dim: rgba(241, 239, 255, 0.55);
-    --line: rgba(241, 239, 255, 0.14);
+    --line: rgba(241, 239, 255, 0.16);
     --cyan: #00f0ff;
     --pink: #ff2d95;
+    --violet: #8a5cff;
+    --mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, "Courier New", monospace;
+    --stub: 210px;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -20,7 +23,7 @@
     color: var(--ink);
     background: #03000b;
     min-height: 100vh;
-    overflow: hidden;
+    overflow-x: hidden;
     cursor: crosshair;
     -webkit-font-smoothing: antialiased;
   }
@@ -35,119 +38,172 @@
   @keyframes d2 { to { transform: translate(-22vw, 18vh) scale(.85); } }
   @keyframes d3 { to { transform: translate(16vw, -18vh) scale(1.25); } }
 
-  #fx { position: fixed; inset: 0; z-index: 1; }
+  #fx { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
 
-  /* ===== Konten minimalis ===== */
-  .stage {
+  /* ===== Tiket ===== */
+  .scene {
     position: relative; z-index: 3;
     min-height: 100vh;
     display: flex; align-items: center; justify-content: center;
-    padding: 40px 24px;
-    pointer-events: none;
+    padding: 50px 20px;
   }
 
-  .wrap {
+  .float { width: 100%; max-width: 900px; animation: float 7s ease-in-out infinite; }
+  @keyframes float { 50% { transform: translateY(-10px); } }
+
+  .tilt {
+    transition: transform .18s ease-out;
+    filter: drop-shadow(0 0 28px rgba(138, 92, 255, .45)) drop-shadow(0 25px 40px rgba(0, 0, 0, .6));
+    animation: enter 1s cubic-bezier(.2, .8, .2, 1) both;
+  }
+  @keyframes enter { from { opacity: 0; transform: perspective(1200px) rotateX(25deg) translateY(60px) scale(.92); } }
+
+  .ticket {
     position: relative;
-    width: 100%; max-width: 480px;
-    pointer-events: auto;
-    isolation: isolate;
-  }
-  /* bayangan gelap lembut agar teks tetap terbaca di atas efek ramai */
-  .wrap::before {
-    content: ""; position: absolute; inset: -80px -70px; z-index: -1;
-    background: radial-gradient(ellipse at center, rgba(3, 0, 11, .72) 0%, rgba(3, 0, 11, .45) 45%, transparent 72%);
-    pointer-events: none;
+    display: grid;
+    grid-template-columns: 1fr var(--stub);
+    border-radius: 22px;
+    background: linear-gradient(135deg, rgba(24, 12, 58, .86), rgba(8, 4, 28, .9));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, .16);
+    overflow: hidden;
+    /* lekukan sobekan di garis perforasi */
+    -webkit-mask:
+      radial-gradient(circle 13px at calc(100% - var(--stub)) 0, transparent 98%, #000 100%),
+      radial-gradient(circle 13px at calc(100% - var(--stub)) 100%, transparent 98%, #000 100%);
+    -webkit-mask-composite: source-in;
+    mask:
+      radial-gradient(circle 13px at calc(100% - var(--stub)) 0, transparent 98%, #000 100%),
+      radial-gradient(circle 13px at calc(100% - var(--stub)) 100%, transparent 98%, #000 100%);
+    mask-composite: intersect;
   }
 
-  /* Banner foto: selebar kolom konten, tinggi lebih pendek (seperti banner Discord/TikTok) */
+  /* kilau hologram yang mengikuti kursor */
+  .holo {
+    position: absolute; inset: 0; z-index: 5; pointer-events: none;
+    background: linear-gradient(115deg, transparent 25%, rgba(0, 240, 255, .16) 40%, rgba(255, 45, 149, .16) 50%, rgba(138, 92, 255, .16) 60%, transparent 75%);
+    background-size: 260% 260%;
+    background-position: var(--hx, 50%) var(--hy, 50%);
+    mix-blend-mode: screen;
+  }
+
+  /* ----- Bagian utama ----- */
+  .main { padding: 26px 32px 30px; position: relative; }
+
+  .t-head {
+    display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .3em; text-transform: uppercase; color: var(--dim);
+  }
+  .t-head b { color: var(--cyan); font-weight: 600; }
+
+  /* Banner foto: selebar bagian utama, tinggi lebih pendek */
   .banner {
+    position: relative;
     width: 100%;
-    height: 150px;               /* ubah untuk mengatur tinggi banner */
-    border-radius: 12px;
+    height: 140px;               /* ubah untuk mengatur tinggi banner */
+    border-radius: 10px;
     overflow: hidden;
     border: 1px solid var(--line);
-    margin-bottom: 30px;
-    background: linear-gradient(135deg, #6a1fe0, #ff2d95 60%, #00f0ff); /* tampil jika foto belum ada */
-    box-shadow: 0 0 30px rgba(138, 92, 255, .25);
-    animation: rise .9s ease both;
+    margin: 18px 0 22px;
+    background: linear-gradient(135deg, #6a1fe0, #ff2d95 60%, #00f0ff);
   }
   .banner img {
-    display: block;
-    width: 100%; height: 100%;
+    display: block; width: 100%; height: 100%;
     object-fit: cover;           /* foto dipotong otomatis, tidak perlu rasio khusus */
     object-position: center;     /* atur fokus: center top / center bottom / dll */
   }
 
+  label {
+    display: block;
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .28em; text-transform: uppercase; color: var(--dim);
+    margin-bottom: 5px;
+  }
+
   h1 {
-    font-size: clamp(44px, 9vw, 72px);
-    font-weight: 200;
-    letter-spacing: -.03em;
-    line-height: 1;
-    margin-bottom: 14px;
-    animation: rise .9s .1s ease both;
+    font-size: clamp(30px, 5.4vw, 50px);
+    font-weight: 800; letter-spacing: -.01em; line-height: 1; text-transform: uppercase;
+    margin-bottom: 18px;
   }
 
-  .role {
-    font-size: 12px; letter-spacing: .32em; text-transform: uppercase;
-    color: var(--cyan); margin-bottom: 26px;
-    animation: rise .9s .2s ease both;
-  }
+  .meta { display: grid; grid-template-columns: repeat(3, auto); justify-content: start; gap: 8px 34px; margin-bottom: 18px; }
+  .meta div { font-family: var(--mono); font-size: 13px; letter-spacing: .06em; }
+  .meta .hl { color: var(--cyan); }
 
-  .about {
-    font-size: 15px; line-height: 1.8; color: var(--dim); font-weight: 300;
-    margin-bottom: 40px;
-    animation: rise .9s .3s ease both;
-  }
+  .about { font-size: 14px; line-height: 1.75; color: var(--dim); font-weight: 300; margin-bottom: 24px; max-width: 520px; }
 
-  .skills { margin-bottom: 40px; animation: rise .9s .4s ease both; }
-  .skill { margin-bottom: 20px; }
-  .skill-top {
+  /* ----- Indikator bahan bakar (bar kemampuan) ----- */
+  .gauges { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 30px; }
+  .gauge-top {
     display: flex; justify-content: space-between;
-    font-size: 11.5px; letter-spacing: .22em; text-transform: uppercase; color: var(--dim);
-    margin-bottom: 9px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--dim);
+    margin-bottom: 7px;
   }
-  .skill-top span:last-child { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .gauge-top span:last-child { color: var(--ink); }
 
-  .bar { position: relative; height: 2px; background: var(--line); }
+  .track { position: relative; height: 9px; background: rgba(255, 255, 255, .08); border-radius: 2px; }
   .fill {
-    position: relative; height: 100%; width: 0;
-    background: linear-gradient(90deg, var(--cyan), #8a5cff, var(--pink));
+    position: relative; height: 100%; width: 0; border-radius: 2px;
+    background: linear-gradient(90deg, var(--cyan), var(--violet), var(--pink));
+    box-shadow: 0 0 12px rgba(0, 240, 255, .5);
     transition: width 1.6s cubic-bezier(.2, .8, .2, 1);
-    box-shadow: 0 0 12px rgba(0, 240, 255, .55);
   }
-  /* titik cahaya di ujung bar */
-  .fill::after {
-    content: ""; position: absolute; right: -4px; top: 50%;
-    width: 8px; height: 8px; border-radius: 50%;
-    background: #fff; transform: translateY(-50%);
-    box-shadow: 0 0 14px 3px var(--pink);
-    animation: pulse 1.8s ease-in-out infinite;
+  .fill::after {  /* jarum penunjuk */
+    content: ""; position: absolute; right: -1px; top: -4px; bottom: -4px; width: 2px; background: #fff;
+    box-shadow: 0 0 10px 2px var(--pink);
   }
-  @keyframes pulse { 50% { transform: translateY(-50%) scale(1.5); opacity: .7; } }
-  .skill:hover .fill { box-shadow: 0 0 20px rgba(0, 240, 255, .9); }
+  .ruler {  /* garis skala */
+    height: 6px; margin-top: 3px;
+    background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .4) 0 1px, transparent 1px 10%);
+    border-right: 1px solid rgba(255, 255, 255, .4);
+  }
 
-  .contact {
-    display: flex; flex-wrap: wrap; gap: 6px 22px;
-    font-size: 12.5px; color: var(--dim); letter-spacing: .05em;
-    padding-top: 22px; border-top: 1px solid var(--line);
-    animation: rise .9s .5s ease both;
+  /* ----- Potongan tiket ----- */
+  .stub {
+    position: relative;
+    border-left: 2px dashed rgba(255, 255, 255, .25);
+    background: rgba(255, 255, 255, .03);
+    padding: 26px 22px 24px;
+    display: flex; flex-direction: column; justify-content: space-between; gap: 18px;
   }
+
+  .seat { display: flex; gap: 24px; }
+  .seat div { font-family: var(--mono); font-size: 30px; font-weight: 700; line-height: 1; }
+  .seat label { margin-bottom: 8px; }
+
+  .stamp {
+    align-self: flex-start;
+    font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .22em; color: var(--pink);
+    border: 2px solid var(--pink); border-radius: 6px; padding: 7px 11px;
+    transform: rotate(-8deg); opacity: .9;
+    box-shadow: 0 0 14px rgba(255, 45, 149, .35);
+  }
+
+  .barcode { display: flex; align-items: stretch; height: 54px; overflow: hidden; }
+  .barcode span { display: block; background: var(--ink); margin-right: 2px; opacity: .9; }
+  .serial { font-family: var(--mono); font-size: 10px; letter-spacing: .3em; color: var(--dim); margin-top: 7px; }
+
+  .contact { font-family: var(--mono); font-size: 11.5px; line-height: 1.9; color: var(--dim); word-break: break-all; }
+  .contact span { display: block; }
+  .contact span::before { content: "▸ "; color: var(--cyan); }
 
   .hint {
-    position: fixed; z-index: 4; bottom: 18px; left: 0; right: 0; text-align: center;
-    font-size: 10.5px; letter-spacing: .35em; text-transform: uppercase; color: rgba(241,239,255,.35);
+    position: fixed; z-index: 4; bottom: 14px; left: 0; right: 0; text-align: center;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .35em; text-transform: uppercase; color: rgba(241, 239, 255, .35);
     pointer-events: none; animation: fade 4s 2s ease both;
   }
   @keyframes fade { 0% { opacity: 0; } 20%, 80% { opacity: 1; } 100% { opacity: .35; } }
 
-  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
-
-  @media (max-width: 520px) {
-    body { overflow-y: auto; }
-    .wrap::before { inset: -50px -30px; }
+  /* ===== Responsif: tiket jadi vertikal ===== */
+  @media (max-width: 760px) {
+    .ticket { grid-template-columns: 1fr; -webkit-mask: none; mask: none; }
+    .stub { border-left: 0; border-top: 2px dashed rgba(255, 255, 255, .25); }
+    .main { padding: 22px 20px 26px; }
+    .gauges { grid-template-columns: 1fr; }
+    .meta { grid-template-columns: repeat(2, auto); }
   }
   @media (prefers-reduced-motion: reduce) {
-    .blob, .fill::after { animation: none; }
+    .blob, .float { animation: none; }
   }
 </style>
 </head>
@@ -156,43 +212,83 @@
 <div class="nebula"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
 <canvas id="fx"></canvas>
 
-<main class="stage">
-  <div class="wrap">
-    <!-- Banner foto: ganti foto.jpg dengan nama file fotomu -->
-    <div class="banner"><img src="foto.jpg" alt="Banner profil"></div>
+<main class="scene">
+  <div class="float">
+    <div class="tilt" id="tilt">
+      <article class="ticket" id="ticket">
+        <div class="holo"></div>
 
-    <h1>Nama Anda</h1>
-    <div class="role">Web Developer</div>
+        <!-- ===== Bagian utama ===== -->
+        <section class="main">
+          <div class="t-head">
+            <span><b>Galaxy Airlines</b> · Boarding Pass</span>
+            <span>Kelas Pertama</span>
+          </div>
 
-    <p class="about">Pengembang web yang suka membuat tampilan sederhana tapi berkesan. Senang belajar teknologi baru dan bekerja sama dalam tim.</p>
+          <!-- Banner foto: ganti foto.jpg dengan nama file fotomu -->
+          <div class="banner"><img src="foto.jpg" alt="Banner profil"></div>
 
-    <div class="skills">
-      <div class="skill">
-        <div class="skill-top"><span>HTML</span><span>90%</span></div>
-        <div class="bar"><div class="fill" data-level="90"></div></div>
-      </div>
-      <div class="skill">
-        <div class="skill-top"><span>CSS</span><span>85%</span></div>
-        <div class="bar"><div class="fill" data-level="85"></div></div>
-      </div>
-      <div class="skill">
-        <div class="skill-top"><span>JavaScript</span><span>75%</span></div>
-        <div class="bar"><div class="fill" data-level="75"></div></div>
-      </div>
-      <div class="skill">
-        <div class="skill-top"><span>Python</span><span>65%</span></div>
-        <div class="bar"><div class="fill" data-level="65"></div></div>
-      </div>
-      <div class="skill">
-        <div class="skill-top"><span>UI/UX Design</span><span>70%</span></div>
-        <div class="bar"><div class="fill" data-level="70"></div></div>
-      </div>
-    </div>
+          <label>Penumpang</label>
+          <h1>Nama Anda</h1>
 
-    <div class="contact">
-      <span>nama@email.com</span>
-      <span>+62 812-3456-7890</span>
-      <span>Yogyakarta, ID</span>
+          <div class="meta">
+            <div><label>Dari</label>Bumi</div>
+            <div><label>Tujuan</label>Andromeda</div>
+            <div><label>Peran</label><span class="hl">Web Developer</span></div>
+          </div>
+
+          <p class="about">Pengembang web yang suka membuat tampilan tidak biasa. Senang menjelajah teknologi baru dan bekerja sama dalam tim.</p>
+
+          <label>Bahan bakar · Kemampuan</label>
+          <div class="gauges" style="margin-top:12px">
+            <div class="gauge">
+              <div class="gauge-top"><span>HTML</span><span>90%</span></div>
+              <div class="track"><div class="fill" data-level="90"></div></div><div class="ruler"></div>
+            </div>
+            <div class="gauge">
+              <div class="gauge-top"><span>CSS</span><span>85%</span></div>
+              <div class="track"><div class="fill" data-level="85"></div></div><div class="ruler"></div>
+            </div>
+            <div class="gauge">
+              <div class="gauge-top"><span>JavaScript</span><span>75%</span></div>
+              <div class="track"><div class="fill" data-level="75"></div></div><div class="ruler"></div>
+            </div>
+            <div class="gauge">
+              <div class="gauge-top"><span>Python</span><span>65%</span></div>
+              <div class="track"><div class="fill" data-level="65"></div></div><div class="ruler"></div>
+            </div>
+            <div class="gauge">
+              <div class="gauge-top"><span>UI/UX Design</span><span>70%</span></div>
+              <div class="track"><div class="fill" data-level="70"></div></div><div class="ruler"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== Potongan tiket ===== -->
+        <aside class="stub">
+          <div>
+            <div class="seat">
+              <div><label>Kursi</label>7A</div>
+              <div><label>Gerbang</label>G11</div>
+            </div>
+            <div style="margin-top:16px"><label>Berangkat</label><span style="font-family:var(--mono);font-size:13px" id="date">--</span></div>
+          </div>
+
+          <div class="stamp">SIAP TERBANG</div>
+
+          <div class="contact">
+            <label>Kontak</label>
+            <span>nama@email.com</span>
+            <span>+62 812-3456-7890</span>
+            <span>Yogyakarta, ID</span>
+          </div>
+
+          <div>
+            <div class="barcode" id="barcode"></div>
+            <div class="serial">GX-2026-A7</div>
+          </div>
+        </aside>
+      </article>
     </div>
   </div>
 </main>
@@ -200,14 +296,43 @@
 <div class="hint">gerakkan kursor · klik di mana saja ✦</div>
 
 <script>
+  /* ===== Tanggal & barcode ===== */
+  document.getElementById("date").textContent =
+    new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase();
+
+  (function () {
+    var box = document.getElementById("barcode");
+    for (var i = 0; i < 40; i++) {
+      var s = document.createElement("span");
+      s.style.width = (Math.random() * 3 + 1).toFixed(1) + "px";
+      box.appendChild(s);
+    }
+  })();
+
   /* ===== Bar kemampuan ===== */
   window.addEventListener("load", function () {
     setTimeout(function () {
       document.querySelectorAll(".fill").forEach(function (b, i) {
         setTimeout(function () { b.style.width = b.dataset.level + "%"; }, i * 160);
       });
-    }, 500);
+    }, 700);
   });
+
+  /* ===== Tiket miring 3D + hologram mengikuti kursor ===== */
+  (function () {
+    var tilt = document.getElementById("tilt");
+    var tk = document.getElementById("ticket");
+    var fine = window.matchMedia("(pointer: fine)").matches;
+    window.addEventListener("pointermove", function (e) {
+      var nx = e.clientX / window.innerWidth, ny = e.clientY / window.innerHeight;
+      if (fine) {
+        tilt.style.transform = "perspective(1200px) rotateX(" + ((0.5 - ny) * 10).toFixed(2) +
+                               "deg) rotateY(" + ((nx - 0.5) * 14).toFixed(2) + "deg)";
+      }
+      tk.style.setProperty("--hx", (nx * 100).toFixed(1) + "%");
+      tk.style.setProperty("--hy", (ny * 100).toFixed(1) + "%");
+    });
+  })();
 
   /* ===== Efek ramai di canvas ===== */
   (function () {
@@ -226,7 +351,6 @@
     resize();
     window.addEventListener("resize", resize);
 
-    /* --- Input: parallax, percikan, ledakan --- */
     var mx = 0, my = 0, tx = 0, ty = 0;
     var particles = [];
 
@@ -256,7 +380,6 @@
       if (!reduce) spark(e.clientX, e.clientY, true);
     });
 
-    /* --- Bintang --- */
     var stars = [];
     for (var i = 0; i < 320; i++) {
       stars.push({
@@ -266,7 +389,6 @@
       });
     }
 
-    /* --- Galaksi spiral --- */
     var spiral = [];
     for (var j = 0; j < 1800; j++) {
       var arm = Math.floor(Math.random() * 3);
@@ -280,7 +402,6 @@
       });
     }
 
-    /* --- Kunang-kunang kosmik --- */
     var flies = [];
     for (var f = 0; f < 50; f++) {
       flies.push({
@@ -290,7 +411,6 @@
       });
     }
 
-    /* --- Bintang jatuh --- */
     var shooters = [];
     function shoot() {
       var left = Math.random() < 0.5;
@@ -300,7 +420,6 @@
       });
     }
 
-    /* --- Aurora --- */
     var auroraCols = [[0, 240, 255], [138, 92, 255], [255, 45, 149]];
     function aurora(t) {
       ctx.globalCompositeOperation = "lighter";
@@ -324,7 +443,6 @@
       ctx.globalCompositeOperation = "source-over";
     }
 
-    /* --- Planet mengorbit --- */
     function planet(cx, cy, r, c1, c2, ring) {
       if (ring) {
         ctx.save();
@@ -353,7 +471,6 @@
       mx += (tx - mx) * 0.05; my += (ty - my) * 0.05;
       ctx.clearRect(0, 0, W, H);
 
-      /* galaksi */
       var cx = W * 0.5 - mx * 30, cy = H * 0.5 - my * 30;
       var R = Math.min(W, H) * 0.66;
       var tilt = -0.45, ct = Math.cos(tilt), st = Math.sin(tilt), rot = t * 0.045;
@@ -376,10 +493,8 @@
       }
       ctx.globalCompositeOperation = "source-over";
 
-      /* aurora */
       aurora(t);
 
-      /* planet */
       var a1 = t * 0.07;
       planet(W * 0.5 + Math.cos(a1) * W * 0.38, H * 0.5 + Math.sin(a1) * H * 0.3 - 20,
              20 + Math.sin(a1) * 6, "#ffb86b", "#8a2b0e", false);
@@ -387,7 +502,6 @@
       planet(W * 0.5 + Math.cos(a2) * W * 0.42, H * 0.5 + Math.sin(a2) * H * 0.34,
              26 + Math.sin(a2) * 8, "#9fb8ff", "#2a2f8f", true);
 
-      /* bintang */
       for (var s = 0; s < stars.length; s++) {
         var q = stars[s];
         var sx = q.x * W + mx * q.z * 60, sy = q.y * H + my * q.z * 60;
@@ -403,7 +517,6 @@
         }
       }
 
-      /* kunang-kunang */
       ctx.globalCompositeOperation = "lighter";
       for (var n = 0; n < flies.length; n++) {
         var fl = flies[n];
@@ -417,7 +530,6 @@
         ctx.beginPath(); ctx.arc(fl.x, fl.y, 1.6, 0, 6.2832); ctx.fill();
       }
 
-      /* bintang jatuh */
       if (!reduce && Math.random() < 0.022) shoot();
       for (var m = shooters.length - 1; m >= 0; m--) {
         var sh = shooters[m];
@@ -430,7 +542,6 @@
         ctx.beginPath(); ctx.moveTo(sh.x, sh.y); ctx.lineTo(sh.x - sh.vx * 11, sh.y - sh.vy * 11); ctx.stroke();
       }
 
-      /* percikan dari kursor & ledakan klik */
       for (var u = particles.length - 1; u >= 0; u--) {
         var pt = particles[u];
         pt.x += pt.vx; pt.y += pt.vy; pt.vy += pt.g; pt.life -= pt.decay;
