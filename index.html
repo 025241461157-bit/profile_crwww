@@ -297,8 +297,10 @@
 
 <script>
   /* ===== Tanggal & barcode ===== */
-  document.getElementById("date").textContent =
-    new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase();
+  var dateEl = document.getElementById("date");
+  if (dateEl) {
+    dateEl.textContent = new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase();
+  }
 
   (function () {
     var box = document.getElementById("barcode");
